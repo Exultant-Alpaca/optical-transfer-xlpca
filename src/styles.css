@@ -1,0 +1,192 @@
+:root {
+  --background: #ffffff;
+  --foreground: #16181a;
+  --muted: #5f666d;
+  --border: #d8dbde;
+  --surface: #f5f6f7;
+  --link: #14538a;
+  --danger: #a33027;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #16181a;
+    --foreground: #e8eaec;
+    --muted: #9aa1a8;
+    --border: #34383c;
+    --surface: #1e2124;
+    --link: #79b3e6;
+    --danger: #e08b81;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3 { line-height: 1.25; margin: 0 0 12px; }
+h1 { font-size: 1.5rem; font-weight: 600; }
+h2 { font-size: 1.05rem; font-weight: 600; margin-top: 32px; }
+h3 { font-size: 1rem; font-weight: 600; }
+p { margin: 0 0 12px; }
+ul, ol { margin: 0 0 12px; padding-left: 22px; }
+li { margin-bottom: 6px; }
+code { background: var(--surface); border-radius: 3px; font-size: .9em; padding: 1px 4px; }
+a { color: var(--link); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.lede { color: var(--muted); }
+.note { color: var(--muted); font-size: .875rem; margin: 8px 0 0; }
+.sr-only { height: 1px; left: -9999px; position: absolute; width: 1px; }
+
+/* Shell */
+.app-shell { display: flex; flex-direction: column; margin: 0 auto; max-width: 44rem; min-height: 100vh; padding: 0 20px; }
+.app-header { align-items: baseline; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; padding: 20px 0 12px; }
+.app-header .wordmark { color: var(--foreground); font-weight: 600; text-decoration: none; }
+.app-header nav { display: flex; gap: 16px; font-size: .9rem; }
+main { flex: 1; padding: 28px 0 48px; }
+.app-footer { border-top: 1px solid var(--border); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .875rem; padding: 16px 0 24px; }
+
+/* Home */
+.home ol, .home ul { max-width: 40rem; }
+.home-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 28px; }
+
+/* Controls */
+.button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--foreground);
+  display: inline-block;
+  padding: 9px 16px;
+  text-align: center;
+  text-decoration: none;
+}
+.button:hover:not(:disabled) { border-color: var(--muted); }
+.button.primary { background: var(--foreground); border-color: var(--foreground); color: var(--background); }
+.button.quiet { background: transparent; }
+.button:disabled { cursor: default; opacity: .55; }
+.full-width { display: block; width: 100%; }
+.button-row { display: flex; gap: 10px; }
+.button-row .button { flex: 1; }
+.link-button { background: none; border: 0; color: var(--link); padding: 0; text-decoration: underline; }
+.back-button { background: none; border: 0; color: var(--muted); padding: 0 0 16px; text-decoration: underline; }
+
+.field-label { color: var(--muted); display: block; font-size: .875rem; margin-bottom: 6px; }
+.segment-field { margin: 20px 0; }
+.segment { display: flex; flex-wrap: wrap; gap: 8px; }
+.segment-item { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); flex: 1 1 10rem; padding: 8px 12px; text-align: left; }
+.segment-item small { color: var(--muted); display: block; font-size: .8rem; }
+.segment-item.selected { border-color: var(--foreground); box-shadow: inset 0 0 0 1px var(--foreground); }
+.segment-item:disabled { opacity: .6; }
+
+.picker { border: 1px dashed var(--border); border-radius: 4px; display: block; margin: 16px 0; padding: 24px 16px; text-align: center; }
+.picker input { position: absolute; height: 1px; opacity: 0; width: 1px; }
+.picker strong { display: block; }
+.picker small { color: var(--muted); }
+
+.file-row { align-items: baseline; border: 1px solid var(--border); border-radius: 4px; display: flex; gap: 12px; margin: 16px 0; padding: 10px 12px; }
+.file-row-body { min-width: 0; }
+.file-row strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row small { color: var(--muted); }
+.file-row .link-button { margin-left: auto; }
+
+.passphrase-display { border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 12px; }
+.passphrase-heading { align-items: baseline; display: flex; justify-content: space-between; }
+.passphrase-value { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; overflow-wrap: anywhere; }
+.copy-button { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); font-size: .8rem; padding: 3px 8px; }
+.passphrase-field { display: block; margin: 20px 0; }
+.passphrase-field input { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); padding: 9px 10px; width: 100%; }
+
+.steps { color: var(--muted); font-size: .875rem; margin-bottom: 8px; }
+.alert { border-left: 3px solid var(--danger); color: var(--danger); margin: 16px 0; padding: 6px 12px; }
+.alert p { margin: 0 0 6px; }
+.inline-error { color: var(--danger); font-size: .9rem; }
+.spinner { animation: spin 1s linear infinite; border: 2px solid var(--border); border-radius: 50%; border-top-color: var(--foreground); display: block; height: 20px; margin-bottom: 12px; width: 20px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Transfer surfaces */
+.qr-stage { margin: 16px 0; }
+.qr-panel, .sending-stage { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin: 0 auto; padding: 8px; width: min(100%, calc(100dvh - 260px)); }
+/* The sending pattern is the physical layer: give it every pixel available, at
+   integer scaling, so the receiving camera has the largest possible target. */
+.qr-panel img, .sending-stage img, .sending-stage canvas { display: block; image-rendering: pixelated; width: 100%; }
+
+/* The sending pattern breaks out of the reading column and takes the whole
+   viewport, because the size of a module on the glass is what decides whether
+   the camera can read it. --qr-reserved is the space the surrounding controls
+   need, measured at runtime. */
+.sending-stage {
+  width: clamp(240px, min(100vw - 32px, 100dvh - var(--qr-reserved, 320px)), 900px);
+  padding: clamp(4px, 1vw, 10px);
+}
+.sending-panel { align-items: center; display: flex; flex-direction: column; }
+.sending-panel > *:not(.qr-stage) { width: 100%; }
+/* Break the pattern out of the reading column so a wide window is not wasted. */
+.sending-panel .qr-stage {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0;
+  margin-left: calc(50% - 50vw + 8px);
+  width: calc(100vw - 16px);
+}
+
+@media (max-width: 34rem) {
+  .sending-stage { width: clamp(220px, min(100vw - 24px, 100dvh - var(--qr-reserved, 300px)), 100vw - 24px); }
+}
+
+/* A landscape phone or a short window has no vertical room to spare, so let the
+   pattern use the full height and drop the surrounding text to the side. */
+@media (orientation: landscape) and (max-height: 34rem) {
+  .sending-stage { width: min(100dvh - 90px, 100vw - 32px); }
+}
+.qr-loading, .qr-waiting { align-items: center; aspect-ratio: 1; color: var(--muted); display: flex; justify-content: center; }
+.timing { margin: 12px 0 4px; }
+/* One compact status line. Every line of text here is height the sending
+   pattern does not get. */
+.sending-line { align-items: baseline; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .875rem; gap: 4px 14px; margin: 0 0 10px; }
+.sending-line strong { color: var(--foreground); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rate { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; }
+.rate strong { color: var(--foreground); }
+
+.progress-block { margin: 16px 0; }
+.progress-track { background: var(--surface); border: 1px solid var(--border); border-radius: 2px; height: 8px; overflow: hidden; }
+.progress-fill { background: var(--foreground); display: block; height: 100%; transition: width .3s linear; }
+.progress-label { color: var(--muted); font-size: .875rem; margin: 6px 0 0; }
+.done-mark { font-size: 1.5rem; }
+
+.camera-actions { margin-bottom: 12px; }
+.camera-stage { aspect-ratio: 3 / 4; background: #000; border: 1px solid var(--border); border-radius: 4px; max-height: 60vh; overflow: hidden; position: relative; }
+.camera-stage video { display: block; height: 100%; object-fit: cover; width: 100%; }
+.camera-idle { align-items: center; color: #ccc; display: flex; inset: 0; justify-content: center; position: absolute; }
+.camera-idle p { margin: 0; }
+.camera-target { border: 2px solid rgb(255 255 255 / 70%); border-radius: 4px; height: 62%; left: 19%; position: absolute; top: 19%; width: 62%; }
+.camera-instruction { color: var(--muted); font-size: .875rem; margin: 10px 0 0; }
+
+/* QRStatic demo */
+.demo-stage { background: #000; border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 8px; }
+.demo-stage canvas { display: block; image-rendering: pixelated; width: 100%; }
+.demo-facts { border-collapse: collapse; font-size: .9rem; margin: 16px 0; width: 100%; }
+.demo-facts th, .demo-facts td { border-bottom: 1px solid var(--border); padding: 6px 0; text-align: left; }
+.demo-facts th { color: var(--muted); font-weight: 400; width: 45%; }
+.demo-result { border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 12px; }
+
+@media (max-width: 34rem) {
+  .button-row { flex-direction: column; }
+  .home-actions .button { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

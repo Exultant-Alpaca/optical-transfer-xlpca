@@ -1,0 +1,32 @@
+{
+  "name": "optical-transfer-demo",
+  "private": false,
+  "version": "0.1.0",
+  "description": "A self-hostable browser experiment for screen-to-camera optical file transfer.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run copy:wasm && npm run build:qrstatic && tsc -b && vite build && npm run prepare:site-runtime",
+    "build:qrstatic": "node scripts/build-qrstatic.mjs",
+    "copy:wasm": "node scripts/copy-wasm.mjs",
+    "prepare:site-runtime": "node scripts/prepare-site-runtime.mjs",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zxing-wasm": "3.1.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@types/node": "24.10.1",
+    "@vitejs/plugin-react": "6.0.5",
+    "typescript": "7.0.2",
+    "vite": "8.2.0",
+    "vitest": "4.1.10"
+  }
+}
