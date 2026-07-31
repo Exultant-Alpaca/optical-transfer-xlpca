@@ -125,14 +125,14 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
       <h2>Licenses</h2>
       <p>
         The MIT license applies to the code in this repository. It does not apply to the other software
-        that this project uses. See <code>THIRD_PARTY_NOTICES.md</code> for the versions, the licenses, and
-        the links.
+        that this project uses. Read the <a href={`${import.meta.env.BASE_URL}licenses/NOTICE.txt`}>
+        deployed third-party notices</a> for the versions, license copies, and source links.
       </p>
       <ul>
-        <li><a href="https://github.com/ianzepp/qrstatic" target="_blank" rel="noreferrer">QRStatic</a>, MIT. The demonstration page uses it.</li>
+        <li><a href="https://github.com/ianzepp/qrstatic/tree/301c2f0c165790f0981426dff1af830670f5d456" target="_blank" rel="noreferrer">QRStatic</a>, MIT as declared by its pinned README. The pinned source does not include a separate license file.</li>
         <li><a href="https://github.com/Sec-ant/zxing-wasm" target="_blank" rel="noreferrer">zxing-wasm</a>, MIT. It reads and writes the QR codes.</li>
         <li><a href="https://github.com/zxing-cpp/zxing-cpp" target="_blank" rel="noreferrer">ZXing C++</a>, Apache-2.0. zxing-wasm contains it.</li>
-        <li><a href="https://github.com/zint/zint" target="_blank" rel="noreferrer">Zint</a>, BSD-3-Clause. zxing-wasm contains it.</li>
+        <li><a href="https://github.com/zint/zint" target="_blank" rel="noreferrer">Zint backend</a>, BSD-style backend terms. zxing-wasm contains it. The Zint frontends and Qt code are not intentionally included.</li>
       </ul>
 
       <h2>Credits</h2>

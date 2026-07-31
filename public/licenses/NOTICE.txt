@@ -1,0 +1,37 @@
+Optical Transfer Demo - bundled third-party notices
+
+This static build contains third-party software. The project MIT license does
+not replace the licenses listed below.
+
+React and React DOM 19.2.8
+License: MIT
+License copy: React-MIT.txt
+Source: https://github.com/facebook/react
+
+zxing-wasm 3.1.2
+License: MIT
+License copy: zxing-wasm-MIT.txt
+Source: https://github.com/Sec-ant/zxing-wasm
+
+ZXing C++, embedded through zxing-wasm
+License: Apache License 2.0
+License copy: Apache-2.0.txt
+Source: https://github.com/zxing-cpp/zxing-cpp
+
+Zint backend, embedded through zxing-wasm
+License: BSD-style backend terms described by upstream. The Zint frontends and
+Qt4 backend remain GPL and are not intentionally included in this project.
+License copy: Zint-LICENSE.txt
+Source: https://github.com/zint/zint
+
+QRStatic
+Pinned revision: 301c2f0c165790f0981426dff1af830670f5d456
+License: MIT, as declared in the upstream README at that revision
+License record: QRStatic-MIT.txt
+Source: https://github.com/ianzepp/qrstatic/tree/301c2f0c165790f0981426dff1af830670f5d456
+
+The pinned QRStatic source does not contain a separate LICENSE or NOTICE file.
+QRStatic-MIT.txt records the upstream declaration and this limitation.
+
+Project notice and reference-project credits:
+https://github.com/Exultant-Alpaca/optical-transfer-xlpca/blob/main/THIRD_PARTY_NOTICES.md
