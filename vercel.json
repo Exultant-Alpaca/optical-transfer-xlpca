@@ -5,16 +5,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/send", "destination": "/index.html" },
+    { "source": "/send/", "destination": "/index.html" },
     { "source": "/send/:path*", "destination": "/index.html" },
     { "source": "/receive", "destination": "/index.html" },
+    { "source": "/receive/", "destination": "/index.html" },
     { "source": "/receive/:path*", "destination": "/index.html" },
     { "source": "/qrstatic", "destination": "/index.html" },
+    { "source": "/qrstatic/", "destination": "/index.html" },
     { "source": "/qrstatic/:path*", "destination": "/index.html" },
     { "source": "/guide", "destination": "/index.html" },
+    { "source": "/guide/", "destination": "/index.html" },
     { "source": "/guide/:path*", "destination": "/index.html" },
     { "source": "/limitations", "destination": "/index.html" },
+    { "source": "/limitations/", "destination": "/index.html" },
     { "source": "/limitations/:path*", "destination": "/index.html" },
     { "source": "/source", "destination": "/index.html" },
+    { "source": "/source/", "destination": "/index.html" },
     { "source": "/source/:path*", "destination": "/index.html" }
   ],
   "headers": [
