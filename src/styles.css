@@ -168,11 +168,9 @@ main { flex: 1; padding: 28px 0 48px; }
 
 .camera-actions { margin-bottom: 12px; }
 .camera-stage { aspect-ratio: 3 / 4; background: #000; border: 1px solid var(--border); border-radius: 4px; max-height: 60vh; overflow: hidden; position: relative; }
-.camera-stage video { display: block; height: 100%; object-fit: cover; width: 100%; }
+.camera-stage video { display: block; height: 100%; object-fit: cover; object-position: 50% 50%; width: 100%; }
 .camera-idle { align-items: center; color: #ccc; display: flex; inset: 0; justify-content: center; position: absolute; }
 .camera-idle p { margin: 0; }
-.camera-target { border: 2px solid rgb(255 255 255 / 70%); border-radius: 4px; height: 62%; left: 19%; position: absolute; top: 19%; width: 62%; }
-.camera-instruction { color: var(--muted); font-size: .875rem; margin: 10px 0 0; }
 
 /* QRStatic demo */
 .demo-stage { background: #000; border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 8px; }
@@ -185,6 +183,7 @@ main { flex: 1; padding: 28px 0 48px; }
 @media (max-width: 34rem) {
   .button-row { flex-direction: column; }
   .home-actions .button { flex: 1 1 100%; }
+  .camera-stage { aspect-ratio: 1; max-height: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

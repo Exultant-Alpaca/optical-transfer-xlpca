@@ -484,8 +484,8 @@ export function TransferReceivePage({ onNavigate }: { onNavigate: (route: Route)
       {error && <p className="alert" role="alert">{error}</p>}
     </Panel>}
 
-    {stage === "receiving" && <Panel title="Point at the other screen" lede="Keep all of the pattern in the view of the camera until the file arrives.">
-      <CameraScanner label="The other screen" instruction="Keep all of the QR pattern in the view." onDecoded={(result) => void scanFrame(result)} />
+    {stage === "receiving" && <Panel title="Point at the other screen">
+      <CameraScanner label="The other screen" onDecoded={(result) => void scanFrame(result)} />
       <ReceivingProgress progress={progress} />
       {ignoringEverything && <div className="alert" role="alert"><p>This pattern is from a different transfer.</p><button type="button" className="link-button" onClick={listenAgain}>Look for a new transfer</button></div>}
       {error && <p className="alert" role="alert">{error}</p>}

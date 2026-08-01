@@ -4,12 +4,11 @@ export interface ScanResult { text?: string; bytes?: Uint8Array; }
 
 interface CameraScannerProps {
   label: string;
-  instruction: string;
   onDecoded: (result: ScanResult) => void;
   onStop?: () => void;
 }
 
-export function CameraScanner({ label, instruction, onDecoded, onStop }: CameraScannerProps) {
+export function CameraScanner({ label, onDecoded, onStop }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<Worker | undefined>(undefined);
@@ -98,10 +97,8 @@ export function CameraScanner({ label, instruction, onDecoded, onStop }: CameraS
       </div>
       <div className="camera-stage">
         <video ref={videoRef} muted playsInline aria-label={label} />
-        <div className="camera-target" aria-hidden="true"><span /></div>
         {status !== "ready" && <div className="camera-idle"><span className="camera-glyph">⌁</span><p>{status === "idle" ? "The camera is off" : status === "starting" ? "The camera starts" : status === "unsupported" ? "No camera is available" : "The camera needs permission"}</p></div>}
       </div>
-      <p className="camera-instruction">{instruction}</p>
       {message && <p className="inline-error" role="alert">{message}</p>}
       <canvas ref={canvasRef} className="sr-only" aria-hidden="true" />
     </div>
