@@ -4,7 +4,7 @@ import { decryptGeneration, derivePassphraseKey, encryptGeneration, PASSPHRASE_K
 import { buildFrameHeader, packFrame, parseFrame } from "./frame";
 import { FountainDecoder, FountainEncoder, fountainSeed } from "./fountain";
 import { normalizePassphrase } from "./passphrase";
-import { processFileInWorker, sanitizeFilename, sanitizeMime, type ProcessedFile, type RecodedMediaInfo } from "../services/fileProcessing";
+import { processFileInWorker, sanitizeFilename, sanitizeMime, type ProcessedFile, type ProcessingProgressCallback, type RecodedMediaInfo } from "../services/fileProcessing";
 
 export interface TransferManifest {
   protocolVersion: 1;
@@ -41,8 +41,8 @@ export interface TransferPlan {
   nextFrame(sequence: number): Uint8Array;
 }
 
-export async function prepareTransfer(file: File, profile: TransmissionProfile = DEFAULT_PROFILE, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET, passphrase?: string): Promise<TransferPlan> {
-  const processed: ProcessedFile = await processFileInWorker(file, imagePreset);
+export async function prepareTransfer(file: File, profile: TransmissionProfile = DEFAULT_PROFILE, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET, passphrase?: string, onProgress?: ProcessingProgressCallback): Promise<TransferPlan> {
+  const processed: ProcessedFile = await processFileInWorker(file, imagePreset, onProgress);
   const selectedProfile = PROFILES[profile];
   const transferId = randomBytes(16);
   const normalizedPassphrase = passphrase ? normalizePassphrase(passphrase) : "";

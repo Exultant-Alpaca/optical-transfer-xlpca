@@ -56,7 +56,15 @@ function evenDimension(value: number): number {
  * codec and uploads no data. Unsupported browsers return null, as do outputs
  * that are not clearly smaller than the input.
  */
-export async function recodeVideoFile(file: File, preset: ImageQualityPreset): Promise<RecodedVideo | null> {
+export async function recodeVideoFile(file: File, preset: ImageQualityPreset, onProgress?: (percent: number) => void): Promise<RecodedVideo | null> {
+  let lastProgress = -1;
+  const report = (percent: number) => {
+    const next = Math.max(0, Math.min(100, Math.round(percent)));
+    if (next === lastProgress) return;
+    lastProgress = next;
+    onProgress?.(next);
+  };
+  report(0);
   if (preset === "original" || !supportsVideoRecoding(file.type)) return null;
   if (file.size < IMAGE_RECODE_MIN_BYTES) return null;
   if (typeof document === "undefined" || typeof AudioContext === "undefined") return null;
@@ -125,6 +133,7 @@ export async function recodeVideoFile(file: File, preset: ImageQualityPreset): P
       if (mediaTime - lastDrawnAt >= 1 / setting.videoFramesPerSecond || video.ended) {
         context.drawImage(video, 0, 0, width, height);
         lastDrawnAt = mediaTime;
+        report((mediaTime / video.duration) * 96);
       }
     };
     const requestVideoFrame = () => {
@@ -150,6 +159,7 @@ export async function recodeVideoFile(file: File, preset: ImageQualityPreset): P
     await Promise.race([ended, timedOut]);
     if (recorder.state !== "inactive") recorder.stop();
     await stopped;
+    report(100);
 
     const blob = new Blob(chunks, { type: format.outputMime });
     if (blob.size === 0 || blob.size >= file.size * MEDIA_RECODE_MIN_SAVING) return null;

@@ -1,4 +1,4 @@
-import { DEFAULT_IMAGE_PRESET, HARD_FILE_LIMIT, PUBLIC_FILE_LIMIT, type ImageQualityPreset } from "../config/policy";
+import { DEFAULT_IMAGE_PRESET, HARD_FILE_LIMIT, IMAGE_RECODE_MIN_BYTES, PUBLIC_FILE_LIMIT, supportsVideoRecoding, type ImageQualityPreset } from "../config/policy";
 import { bytesToBase64Url } from "../protocol/bytes";
 import { recodeVideoFile } from "./videoRecoding";
 
@@ -33,6 +33,7 @@ export function validateFile(file: File): string | null {
 
 interface ProcessResponse {
   type: string;
+  percent?: number;
   originalLength?: number;
   encoded?: ArrayBuffer;
   compression?: "none" | "gzip";
@@ -43,8 +44,19 @@ interface ProcessResponse {
   message?: string;
 }
 
-export async function processFileInWorker(file: File, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET): Promise<ProcessedFile> {
-  const videoResult = await recodeVideoFile(file, imagePreset).catch(() => null);
+export type ProcessingProgressCallback = (percent: number) => void;
+
+export async function processFileInWorker(file: File, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET, onProgress?: ProcessingProgressCallback): Promise<ProcessedFile> {
+  let lastProgress = -1;
+  const report = (percent: number) => {
+    const next = Math.max(0, Math.min(100, Math.round(percent)));
+    if (next === lastProgress) return;
+    lastProgress = next;
+    onProgress?.(next);
+  };
+  report(0);
+  const videoCandidate = imagePreset !== "original" && file.size >= IMAGE_RECODE_MIN_BYTES && supportsVideoRecoding(file.type);
+  const videoResult = await recodeVideoFile(file, imagePreset, (percent) => report(percent * 0.9)).catch(() => null);
   const input = videoResult?.file ?? file;
   const videoRecoded: RecodedMediaInfo | null = videoResult ? {
     sourceLength: file.size,
@@ -57,12 +69,17 @@ export async function processFileInWorker(file: File, imagePreset: ImageQualityP
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("../workers/fileProcessor.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<ProcessResponse>) => {
-      worker.terminate();
       const data = event.data;
+      if (data.type === "progress" && data.percent !== undefined) {
+        report(videoCandidate ? 90 + data.percent * 0.1 : data.percent);
+        return;
+      }
+      worker.terminate();
       if (data.type === "error" || !data.encoded || !data.sha256 || data.originalLength === undefined || !data.compression) {
         reject(new Error(data.message ?? "File processing failed"));
         return;
       }
+      report(100);
       resolve({
         originalLength: data.originalLength,
         encoded: new Uint8Array(data.encoded),

@@ -10,13 +10,14 @@ vi.mock("../src/services/fileProcessing", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/services/fileProcessing")>();
   return {
     ...actual,
-    processFileInWorker: async (file: File) => {
+    processFileInWorker: async (file: File, _preset?: unknown, onProgress?: (percent: number) => void) => {
+      onProgress?.(0);
       const source = new Uint8Array(await file.arrayBuffer());
       // Stand in for the worker's re-encode: a smaller payload, a new media
       // type and extension, and provenance describing the original.
       const recoding = fakeRecode.active && file.type.startsWith("image/");
       const payload = recoding ? source.slice(0, Math.floor(source.length / 4)) : source;
-      return {
+      const processed = {
         originalLength: payload.length,
         encoded: payload,
         compression: "none" as const,
@@ -26,6 +27,8 @@ vi.mock("../src/services/fileProcessing", async (importOriginal) => {
         filename: recoding ? file.name.replace(/\.[^.]+$/, ".webp") : file.name,
         recoded: recoding ? { sourceLength: source.length, sourceMime: file.type, width: 2_560, height: 1_920, kind: "photo" as const } : null,
       };
+      onProgress?.(100);
+      return processed;
     },
   };
 });
@@ -48,6 +51,12 @@ describe("transmission profiles", () => {
       expect(plan.profile).toBe(profile);
       expect(plan.manifest.sourceBlockSize).toBe(PROFILES[profile].sourceBlockSize);
     }
+  });
+
+  it("forwards live preparation progress", async () => {
+    const progress: number[] = [];
+    await prepareTransfer(sampleFile(2_000), "balanced", "balanced", undefined, (percent) => progress.push(percent));
+    expect(progress).toEqual([0, 100]);
   });
 });
 

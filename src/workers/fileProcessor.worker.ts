@@ -69,15 +69,17 @@ function renameFor(filename: string, mime: string): string {
   return `${stem}.${extension}`;
 }
 
-async function recodeImage(bytes: Uint8Array, mime: string, preset: ImageQualityPreset): Promise<RecodedAsset | null> {
+async function recodeImage(bytes: Uint8Array, mime: string, preset: ImageQualityPreset, report: (percent: number) => void): Promise<RecodedAsset | null> {
   if (typeof createImageBitmap === "undefined" || typeof OffscreenCanvas === "undefined") return null;
   const { maxEdge, quality } = IMAGE_PRESETS[preset];
+  report(8);
 
   // "from-image" applies the EXIF orientation while decoding, so the re-encoded
   // file is upright even though it no longer carries the EXIF block. Dropping
   // that block also strips any camera and GPS metadata.
   const bitmap = await createImageBitmap(new Blob([toArrayBuffer(bytes)], { type: mime }), { imageOrientation: "from-image" });
   try {
+    report(30);
     const longestEdge = Math.max(bitmap.width, bitmap.height);
     const scale = Math.min(1, maxEdge / longestEdge);
     const width = Math.max(1, Math.round(bitmap.width * scale));
@@ -87,6 +89,7 @@ async function recodeImage(bytes: Uint8Array, mime: string, preset: ImageQuality
     const context = canvas.getContext("2d");
     if (!context) return null;
     context.drawImage(bitmap, 0, 0, width, height);
+    report(55);
 
     // convertToBlob silently falls back to PNG for a format the browser cannot
     // encode, so trust the returned blob's type rather than the requested one.
@@ -96,6 +99,7 @@ async function recodeImage(bytes: Uint8Array, mime: string, preset: ImageQuality
     for (const type of candidates) {
       const blob = await canvas.convertToBlob({ type, quality }).catch(() => null);
       if (!blob || blob.type !== type) continue;
+      report(82);
       const encoded = new Uint8Array(new ArrayBuffer(blob.size));
       encoded.set(new Uint8Array(await blob.arrayBuffer()));
       return { bytes: encoded, mime: type, width, height, kind: "photo" };
@@ -139,7 +143,7 @@ function quantizeGifFrame(pixels: Uint8ClampedArray): Uint8Array {
   return indices;
 }
 
-async function recodeGif(bytes: Uint8Array, preset: Exclude<ImageQualityPreset, "original">): Promise<RecodedAsset | null> {
+async function recodeGif(bytes: Uint8Array, preset: Exclude<ImageQualityPreset, "original">, report: (percent: number) => void): Promise<RecodedAsset | null> {
   if (typeof ImageDecoder === "undefined" || typeof OffscreenCanvas === "undefined") return null;
   if (!(await ImageDecoder.isTypeSupported("image/gif"))) return null;
 
@@ -152,6 +156,7 @@ async function recodeGif(bytes: Uint8Array, preset: Exclude<ImageQualityPreset, 
     await decoder.tracks.ready;
     const track = decoder.tracks.selectedTrack;
     if (!track?.animated || track.frameCount < 2) return null;
+    report(5);
 
     const setting = MEDIA_PRESETS[preset];
     const frames: GifFrame[] = [];
@@ -193,12 +198,14 @@ async function recodeGif(bytes: Uint8Array, preset: Exclude<ImageQualityPreset, 
       } finally {
         image.close();
       }
+      report(5 + ((frameIndex + 1) / track.frameCount) * 80);
     }
 
     if (frames.length < 2) return null;
     const repetitions = track.repetitionCount;
     const loopCount = repetitions === Infinity ? 0 : repetitions === 0 ? null : repetitions;
     const blob = encodeGif({ width, height, palette: gifPalette(), frames, loopCount });
+    report(90);
     const encoded = new Uint8Array(new ArrayBuffer(blob.size));
     encoded.set(new Uint8Array(await blob.arrayBuffer()));
     return { bytes: encoded, mime: "image/gif", width, height, kind: "animation" };
@@ -208,6 +215,14 @@ async function recodeGif(bytes: Uint8Array, preset: Exclude<ImageQualityPreset, 
 }
 
 async function processFile(request: ProcessRequest): Promise<void> {
+  let lastProgress = -1;
+  const report = (percent: number) => {
+    const next = Math.max(0, Math.min(100, Math.round(percent)));
+    if (next === lastProgress) return;
+    lastProgress = next;
+    self.postMessage({ type: "progress", percent: next });
+  };
+  report(0);
   const source = new Uint8Array(new ArrayBuffer(request.buffer.byteLength));
   source.set(new Uint8Array(request.buffer));
 
@@ -221,9 +236,9 @@ async function processFile(request: ProcessRequest): Promise<void> {
     // A decoder that cannot read the format, or an encoder that produces
     // something larger, must leave the original file untouched.
     const result = supportsImageRecoding(request.mime) && !isAnimated(source, request.mime)
-      ? await recodeImage(source, request.mime, recodePreset).catch(() => null)
+      ? await recodeImage(source, request.mime, recodePreset, report).catch(() => null)
       : supportsGifRecoding(request.mime)
-        ? await recodeGif(source, recodePreset).catch(() => null)
+        ? await recodeGif(source, recodePreset, report).catch(() => null)
         : null;
     if (result && result.bytes.length < source.length * MEDIA_RECODE_MIN_SAVING) {
       recoded = { sourceLength: source.length, sourceMime: request.mime, width: result.width, height: result.height, kind: result.kind };
@@ -232,10 +247,12 @@ async function processFile(request: ProcessRequest): Promise<void> {
       filename = renameFor(request.filename, result.mime);
     }
   }
+  report(92);
 
   // The digest covers what is actually transmitted, so the receiver still
   // verifies the exact bytes it is about to save.
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", toArrayBuffer(payload)));
+  report(96);
   const sample = payload.subarray(0, Math.min(128 * 1024, payload.length));
   let encoded = payload;
   let compression: "none" | "gzip" = "none";
@@ -249,9 +266,11 @@ async function processFile(request: ProcessRequest): Promise<void> {
       }
     }
   }
+  report(99);
 
   const encodedBuffer = toArrayBuffer(encoded);
   const digestBuffer = toArrayBuffer(digest);
+  report(100);
   self.postMessage(
     { type: "complete", originalLength: payload.length, encoded: encodedBuffer, compression, sha256: digestBuffer, mime, filename, recoded },
     [encodedBuffer, digestBuffer],

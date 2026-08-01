@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  DEFAULT_IMAGE_PRESET, DEFAULT_PROFILE, FOUNTAIN_OVERHEAD, frameIntervalMs, GENERATION_PLAIN_LIMIT,
+  DEFAULT_IMAGE_PRESET, DEFAULT_PROFILE, FOUNTAIN_OVERHEAD, frameIntervalMs, GENERATION_PLAIN_LIMIT, IMAGE_RECODE_MIN_BYTES,
   IMAGE_PRESETS, PROFILES, receiverUrl, supportsMediaRecoding,
   type ImageQualityPreset, type TransferMode, type TransmissionProfile,
 } from "../config/policy";
@@ -328,6 +328,7 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
   const [passphrase, setPassphrase] = useState(() => generatePassphrase());
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
 
   const restart = () => {
     setStage("link");
@@ -335,6 +336,7 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
     setPlan(undefined);
     setError(undefined);
     setBusy(false);
+    setCompressionProgress(0);
     setPassphrase(generatePassphrase());
   };
 
@@ -355,9 +357,16 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
     if (!file) return;
     setBusy(true);
     setError(undefined);
+    setCompressionProgress(0);
     setStage("preparing");
     try {
-      setPlan(await prepareTransfer(file, profile, imagePreset, mode === "passphrase" ? passphrase : undefined));
+      setPlan(await prepareTransfer(
+        file,
+        profile,
+        imagePreset,
+        mode === "passphrase" ? passphrase : undefined,
+        (percent) => setCompressionProgress((current) => Math.max(current, percent)),
+      ));
       setStage("sending");
     } catch (caught: unknown) {
       setError(caught instanceof Error ? caught.message : "The software cannot prepare this file. Select a different file.");
@@ -392,7 +401,16 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
       <button className="button primary full-width" type="button" onClick={() => void prepareFile()} disabled={!file || busy}>{busy ? "Please wait" : "Start the transfer"}</button>
     </Panel>}
 
-    {stage === "preparing" && <div className="panel"><span className="spinner" /><h1>Please wait</h1><p className="lede">{file?.type.startsWith("video/") && imagePreset !== "original" ? "This browser compresses the video in real time. Keep this page open." : "This browser prepares the file. Keep this page open."}</p></div>}
+    {stage === "preparing" && <div className="panel">
+      {file && imagePreset !== "original" && file.size >= IMAGE_RECODE_MIN_BYTES && supportsMediaRecoding(file.type) ? <>
+        <h1>Compressing the file</h1>
+        <p className="lede">{file.type.startsWith("video/") ? "This runs in real time. Keep this page open." : "This work stays in your browser. Keep this page open."}</p>
+        <div className="progress-block">
+          <div className="progress-track" role="progressbar" aria-valuenow={compressionProgress} aria-valuemin={0} aria-valuemax={100} aria-label="File compression"><span className="progress-fill" style={{ width: `${compressionProgress}%` }} /></div>
+          <p className="progress-label"><strong>{compressionProgress}%</strong> compressed</p>
+        </div>
+      </> : <><span className="spinner" /><h1>Please wait</h1><p className="lede">This browser prepares the file. Keep this page open.</p></>}
+    </div>}
 
     {stage === "sending" && plan && <SendingScreen plan={plan} passphrase={mode === "passphrase" ? passphrase : undefined} onStop={restart} />}
   </main>;
