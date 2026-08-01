@@ -100,17 +100,17 @@ describe("image recoding policy", () => {
     for (const mime of ["image/jpeg", "image/png", "image/webp", "image/heic", "image/avif"]) {
       expect(supportsImageRecoding(mime)).toBe(true);
     }
-    // GIF and video use separate media paths, not the still-image path.
+    // GIF uses a separate media path. Video is not re-encoded.
     for (const mime of ["image/gif", "image/svg+xml", "application/pdf", "video/mp4", "text/plain", ""]) {
       expect(supportsImageRecoding(mime)).toBe(false);
     }
   });
 
-  it("offers the same optional media control for GIFs and videos", () => {
-    for (const mime of ["image/jpeg", "image/gif", "video/mp4", "video/quicktime", "video/webm"]) {
+  it("offers optional media controls only for photos and GIFs", () => {
+    for (const mime of ["image/jpeg", "image/gif"]) {
       expect(supportsMediaRecoding(mime)).toBe(true);
     }
-    for (const mime of ["image/svg+xml", "application/pdf", "audio/mpeg", "text/plain", ""]) {
+    for (const mime of ["image/svg+xml", "application/pdf", "video/mp4", "video/quicktime", "video/webm", "audio/mpeg", "text/plain", ""]) {
       expect(supportsMediaRecoding(mime)).toBe(false);
     }
   });

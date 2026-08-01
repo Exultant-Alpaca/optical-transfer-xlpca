@@ -97,7 +97,7 @@ describe("end to end optical transfer", () => {
   }, 120_000);
 
   it("moves a file with a locally derived passphrase key", async () => {
-    const passphrase = "amber-river bright-cloud calm-forest copper-moon gentle-pine lunar-stream silver-valley swift-wind";
+    const passphrase = "amber-river bright-cloud calm-forest copper-moon gentle-pine lunar-stream silver-valley swift-wind warm-meadow quiet-lake golden-hill cedar-comet";
     const file = sampleFile(20_000, "secret.bin");
     const plan = await prepareTransfer(file, "conservative", "original", passphrase);
     expect(plan.manifest.encryption).toBe("aes-gcm");

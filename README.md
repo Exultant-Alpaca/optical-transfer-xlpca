@@ -47,9 +47,9 @@ phrase. This project has not had an independent security review.
 
 ## Media compression
 
-The sender can optionally reduce large photos, animated GIFs, and videos before transmission. Processing
-stays in the browser. The original is used when the browser lacks a required codec or the new file is not
-at least 10% smaller. Video compression runs in real time and supports videos up to five minutes.
+The sender can optionally reduce large photos and animated GIFs before transmission. Processing stays in
+the browser. The original is used when the browser lacks a required codec or the new file is not at least
+10% smaller. Video and audio files are sent without media compression.
 
 ## QRStatic
 

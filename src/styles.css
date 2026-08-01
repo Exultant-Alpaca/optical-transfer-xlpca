@@ -104,8 +104,11 @@ main { flex: 1; padding: 28px 0 48px; }
 
 .passphrase-display { border: 1px solid var(--border); border-radius: 4px; margin: 16px 0; padding: 12px; }
 .passphrase-heading { align-items: baseline; display: flex; justify-content: space-between; }
+.passphrase-actions { display: flex; gap: 6px; }
 .passphrase-value { display: block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95rem; overflow-wrap: anywhere; }
 .copy-button { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); font-size: .8rem; padding: 3px 8px; }
+.passphrase-visibility { align-items: center; display: inline-flex; justify-content: center; padding: 3px; width: 28px; }
+.passphrase-visibility svg { fill: none; height: 16px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; width: 16px; }
 .passphrase-field { display: block; margin: 20px 0; }
 .passphrase-field input { background: var(--background); border: 1px solid var(--border); border-radius: 4px; color: var(--foreground); padding: 9px 10px; width: 100%; }
 

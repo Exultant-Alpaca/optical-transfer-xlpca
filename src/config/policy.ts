@@ -118,32 +118,17 @@ export const MEDIA_RECODE_MIN_SAVING = IMAGE_RECODE_MIN_SAVING;
 /** Prevent a small input from becoming a large decoded frame queue. */
 export const GIF_RECODE_MAX_PIXELS = 80_000_000;
 
-/** Browser video recording runs in real time. Longer files are left unchanged. */
-export const VIDEO_RECODE_MAX_SECONDS = 5 * 60;
-
 export const MEDIA_PRESETS: Record<Exclude<ImageQualityPreset, "original">, {
   gifMaxEdge: number;
   gifFramesPerSecond: number;
-  videoMaxEdge: number;
-  videoFramesPerSecond: number;
-  videoBitsPerSecond: number;
-  audioBitsPerSecond: number;
 }> = {
   balanced: {
     gifMaxEdge: 720,
     gifFramesPerSecond: 12,
-    videoMaxEdge: 1_280,
-    videoFramesPerSecond: 24,
-    videoBitsPerSecond: 1_400_000,
-    audioBitsPerSecond: 96_000,
   },
   smallest: {
     gifMaxEdge: 480,
     gifFramesPerSecond: 8,
-    videoMaxEdge: 854,
-    videoFramesPerSecond: 18,
-    videoBitsPerSecond: 650_000,
-    audioBitsPerSecond: 64_000,
   },
 };
 
@@ -161,12 +146,8 @@ export function supportsGifRecoding(mime: string): boolean {
   return mime.toLowerCase().trim() === "image/gif";
 }
 
-export function supportsVideoRecoding(mime: string): boolean {
-  return mime.toLowerCase().trim().startsWith("video/");
-}
-
 export function supportsMediaRecoding(mime: string): boolean {
-  return supportsImageRecoding(mime) || supportsGifRecoding(mime) || supportsVideoRecoding(mime);
+  return supportsImageRecoding(mime) || supportsGifRecoding(mime);
 }
 
 /** Formats that can carry transparency, which a JPEG fallback would destroy. */

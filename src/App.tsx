@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { PASSPHRASE_PART_COUNT } from "./protocol/passphrase";
 import { InfoPage, type InfoKind } from "./routes/InfoPage";
 import { QrStaticDemoPage } from "./routes/QrStaticDemoPage";
 import { TransferReceivePage, TransferSendPage } from "./routes/TransferPages";
@@ -79,7 +80,7 @@ function HomePage({ onNavigate }: { onNavigate: (route: Route) => void }) {
     <h2>Modes</h2>
     <ul>
       <li><strong>Quick QR</strong> sends QR codes that contain a CRC check and a fountain code. Thus the receiver can lose frames or read frames in a different sequence, and it can still assemble the file. This mode does not encrypt the file.</li>
-      <li><strong>Passphrase</strong> sends the same data, but it encrypts the data with AES-GCM. The two browsers make the key from a phrase of 8 parts. The first device shows the phrase. You type the phrase on the second device. The software does not send the phrase.</li>
+      <li><strong>Passphrase</strong> sends the same data, but it encrypts the data with AES-GCM. The two browsers make the key from a phrase of {PASSPHRASE_PART_COUNT} parts. The first device shows the phrase. You type the phrase on the second device. The software does not send the phrase.</li>
     </ul>
     <p>
       There is a third transport, QRStatic. It hides data in noise. A camera cannot read it. Thus it is

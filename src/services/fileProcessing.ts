@@ -1,6 +1,5 @@
-import { DEFAULT_IMAGE_PRESET, HARD_FILE_LIMIT, IMAGE_RECODE_MIN_BYTES, PUBLIC_FILE_LIMIT, supportsVideoRecoding, type ImageQualityPreset } from "../config/policy";
+import { DEFAULT_IMAGE_PRESET, HARD_FILE_LIMIT, PUBLIC_FILE_LIMIT, type ImageQualityPreset } from "../config/policy";
 import { bytesToBase64Url } from "../protocol/bytes";
-import { recodeVideoFile } from "./videoRecoding";
 
 /** Set when visual media was re-encoded, describing what it was beforehand. */
 export interface RecodedMediaInfo {
@@ -55,23 +54,13 @@ export async function processFileInWorker(file: File, imagePreset: ImageQualityP
     onProgress?.(next);
   };
   report(0);
-  const videoCandidate = imagePreset !== "original" && file.size >= IMAGE_RECODE_MIN_BYTES && supportsVideoRecoding(file.type);
-  const videoResult = await recodeVideoFile(file, imagePreset, (percent) => report(percent * 0.9)).catch(() => null);
-  const input = videoResult?.file ?? file;
-  const videoRecoded: RecodedMediaInfo | null = videoResult ? {
-    sourceLength: file.size,
-    sourceMime: file.type,
-    width: videoResult.width,
-    height: videoResult.height,
-    kind: "video",
-  } : null;
 
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("../workers/fileProcessor.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<ProcessResponse>) => {
       const data = event.data;
       if (data.type === "progress" && data.percent !== undefined) {
-        report(videoCandidate ? 90 + data.percent * 0.1 : data.percent);
+        report(data.percent);
         return;
       }
       worker.terminate();
@@ -85,14 +74,14 @@ export async function processFileInWorker(file: File, imagePreset: ImageQualityP
         encoded: new Uint8Array(data.encoded),
         compression: data.compression,
         sha256: new Uint8Array(data.sha256),
-        mime: data.mime || input.type || "application/octet-stream",
-        filename: data.filename || input.name,
-        recoded: videoRecoded ?? data.recoded ?? null,
+        mime: data.mime || file.type || "application/octet-stream",
+        filename: data.filename || file.name,
+        recoded: data.recoded ?? null,
       });
     };
     worker.onerror = () => { worker.terminate(); reject(new Error("File worker stopped unexpectedly")); };
-    input.arrayBuffer()
-      .then((buffer) => worker.postMessage({ type: "process", buffer, mime: input.type, filename: input.name, imagePreset }, [buffer]))
+    file.arrayBuffer()
+      .then((buffer) => worker.postMessage({ type: "process", buffer, mime: file.type, filename: file.name, imagePreset }, [buffer]))
       .catch((error: unknown) => { worker.terminate(); reject(error); });
   });
 }

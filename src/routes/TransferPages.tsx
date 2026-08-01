@@ -71,10 +71,31 @@ function modeLabel(mode: TransferMode): string {
 
 function PassphraseDisplay({ passphrase, compact = false }: { passphrase: string; compact?: boolean }) {
   const [copied, setCopied] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const maskedPassphrase = passphrase.split(" ").map(() => "••••••••••••").join(" ");
   const copy = async () => {
     try {
-      if (!navigator.clipboard) return;
-      await navigator.clipboard.writeText(passphrase);
+      let success = false;
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(passphrase);
+          success = true;
+        } catch {
+          // Use the local selection fallback below.
+        }
+      }
+      if (!success) {
+        const field = document.createElement("textarea");
+        field.value = passphrase;
+        field.readOnly = true;
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.appendChild(field);
+        field.select();
+        success = document.execCommand("copy");
+        field.remove();
+      }
+      if (!success) return;
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1_600);
     } catch {
@@ -82,8 +103,25 @@ function PassphraseDisplay({ passphrase, compact = false }: { passphrase: string
     }
   };
   return <div className={compact ? "passphrase-display compact" : "passphrase-display"}>
-    <div className="passphrase-heading"><span className="field-label">Passphrase</span><button type="button" className="copy-button" onClick={() => void copy()}>{copied ? "Copied" : "Copy"}</button></div>
-    <code className="passphrase-value">{passphrase}</code>
+    <div className="passphrase-heading">
+      <span className="field-label">Passphrase</span>
+      <div className="passphrase-actions">
+        <button type="button" className="copy-button" onClick={() => void copy()}>{copied ? "Copied" : "Copy"}</button>
+        <button
+          type="button"
+          className="copy-button passphrase-visibility"
+          onClick={() => setRevealed((visible) => !visible)}
+          aria-label={revealed ? "Hide passphrase" : "Show passphrase"}
+          aria-pressed={revealed}
+          title={revealed ? "Hide passphrase" : "Show passphrase"}
+        >
+          {revealed
+            ? <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 4.2A10.8 10.8 0 0 1 12 4c5.5 0 9 5.1 9 8a8.9 8.9 0 0 1-2 3.7M6.6 6.6C4.3 8 3 10.3 3 12c0 2.9 3.5 8 9 8a10.6 10.6 0 0 0 3.4-.6" /></svg>
+            : <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12c0-2.9 3.5-8 9-8s9 5.1 9 8-3.5 8-9 8-9-5.1-9-8Z" /><circle cx="12" cy="12" r="3" /></svg>}
+        </button>
+      </div>
+    </div>
+    <code className="passphrase-value" aria-label={revealed ? "Visible passphrase" : "Hidden passphrase"}>{revealed ? passphrase : maskedPassphrase}</code>
     {!compact && <Note>Give all {PASSPHRASE_PART_COUNT} parts to the other person. The software uses the phrase on this device only. It does not send the phrase.</Note>}
   </div>;
 }
@@ -118,7 +156,6 @@ function FileRow({ name, detail, onChange }: { name: string; detail: string; onC
 }
 
 function MediaQuality({ file, preset, onChange }: { file: File; preset: ImageQualityPreset; onChange: (preset: ImageQualityPreset) => void }) {
-  const isVideo = file.type.startsWith("video/");
   const isGif = file.type === "image/gif";
   return <div className="segment-field">
     <span className="field-label">Media size</span>
@@ -130,11 +167,9 @@ function MediaQuality({ file, preset, onChange }: { file: File; preset: ImageQua
     </div>
     <Note>{preset === "original"
       ? "The software sends this file without a change."
-      : isVideo
-        ? "The browser compresses the video on this device. This can take as long as the video. It keeps the original if the result is not smaller."
-        : isGif
-          ? "The browser can reduce the GIF size, frame rate, and colours. It keeps the original if the result is not smaller."
-          : "The browser can make a large photo smaller on this device. It keeps the original if the result is not smaller."}</Note>
+      : isGif
+        ? "The browser can reduce the GIF size, frame rate, and colours. It keeps the original if the result is not smaller."
+        : "The browser can make a large photo smaller on this device. It keeps the original if the result is not smaller."}</Note>
   </div>;
 }
 
@@ -404,7 +439,7 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
     {stage === "preparing" && <div className="panel">
       {file && imagePreset !== "original" && file.size >= IMAGE_RECODE_MIN_BYTES && supportsMediaRecoding(file.type) ? <>
         <h1>Compressing the file</h1>
-        <p className="lede">{file.type.startsWith("video/") ? "This runs in real time. Keep this page open." : "This work stays in your browser. Keep this page open."}</p>
+        <p className="lede">This work stays in your browser. Keep this page open.</p>
         <div className="progress-block">
           <div className="progress-track" role="progressbar" aria-valuenow={compressionProgress} aria-valuemin={0} aria-valuemax={100} aria-label="File compression"><span className="progress-fill" style={{ width: `${compressionProgress}%` }} /></div>
           <p className="progress-label"><strong>{compressionProgress}%</strong> compressed</p>

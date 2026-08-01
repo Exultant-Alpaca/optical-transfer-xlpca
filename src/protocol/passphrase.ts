@@ -1,10 +1,10 @@
 import { randomBytes } from "./bytes";
 
-export const PASSPHRASE_PART_COUNT = 8;
+export const PASSPHRASE_PART_COUNT = 12;
 
 // These compact, locally owned word lists keep the phrase generator dependency
 // free. Each part combines one adjective and one noun, giving 1,024 choices per
-// part and roughly 80 bits of entropy across the generated phrase.
+// part and roughly 120 bits of entropy across the generated phrase.
 const ADJECTIVES = [
   "amber", "bright", "calm", "cedar", "clear", "copper", "coral", "crisp",
   "dusk", "fern", "gentle", "golden", "green", "kind", "lunar", "mellow",

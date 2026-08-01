@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PASSPHRASE_PART_COUNT } from "../protocol/passphrase";
 
 // The text on this site follows ASD-STE100 Simplified Technical English: one
 // instruction to a sentence, the active voice, approved words in their approved
@@ -46,7 +47,7 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
       <h2>Passphrase mode</h2>
       <p>
         Passphrase mode sends the same stream, but the sender encrypts it. The two browsers make an
-        AES-GCM-256 key from a phrase of 8 parts. The sender shows the phrase. The user types the phrase on
+        AES-GCM-256 key from a phrase of {PASSPHRASE_PART_COUNT} parts. The sender shows the phrase. The user types the phrase on
         the receiver. The phrase does not go into the frames.
       </p>
       <p>
@@ -56,13 +57,12 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
 
       <h2>Media size</h2>
       <p>
-        The sender can make a large photo, GIF, or short video smaller before the transfer. This work stays
+        The sender can make a large photo or GIF smaller before the transfer. This work stays
         in the browser. The browser keeps the original when the new file is not at least 10 percent smaller.
       </p>
       <p>
-        GIF compression can reduce the dimensions, frame rate, and colours. Video compression can reduce
-        the dimensions, frame rate, and bit rate. Video compression runs in real time and can change the
-        file to MP4 or WebM. Select Full size to send the source without a change.
+        GIF compression can reduce the dimensions, frame rate, and colours. Select Full size to send the
+        source without a change. Video and audio files always keep their original data.
       </p>
 
       <h2>How to save the stream as a GIF</h2>
@@ -109,7 +109,7 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
       </p>
       <p>
         Media compression uses browser codecs. A browser that cannot read or write the selected format
-        sends the original file. Video compression is available for videos of five minutes or less.
+        sends the original file.
       </p>
 
       <h2>QRStatic is not a transfer mode</h2>
