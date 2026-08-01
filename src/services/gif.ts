@@ -11,6 +11,8 @@ export interface GifFrame {
   indices: Uint8Array;
   /** Hundredths of a second to hold this frame. */
   delayCs: number;
+  /** Palette entry used for transparent pixels. */
+  transparentIndex?: number;
 }
 
 export interface GifOptions {
@@ -19,8 +21,8 @@ export interface GifOptions {
   /** RGB triples, at most 256 entries. */
   palette: Uint8Array;
   frames: GifFrame[];
-  /** 0 loops forever. */
-  loopCount?: number;
+  /** 0 loops forever. Null plays once without a loop extension. */
+  loopCount?: number | null;
 }
 
 class ByteWriter {
@@ -163,12 +165,14 @@ export function encodeGif({ width, height, palette, frames, loopCount = 0 }: Gif
     writer.byte(palette[index * 3 + 2] ?? 0);
   }
 
-  // Netscape looping extension.
-  writer.ascii("!\xff\x0bNETSCAPE2.0");
-  writer.byte(3);
-  writer.byte(1);
-  writer.short(loopCount);
-  writer.byte(0);
+  if (loopCount !== null) {
+    // Netscape looping extension.
+    writer.ascii("!\xff\x0bNETSCAPE2.0");
+    writer.byte(3);
+    writer.byte(1);
+    writer.short(loopCount);
+    writer.byte(0);
+  }
 
   // LZW needs at least two bits per code even for a two-colour image.
   const minCodeSize = Math.max(2, bits);
@@ -176,9 +180,11 @@ export function encodeGif({ width, height, palette, frames, loopCount = 0 }: Gif
   for (const frame of frames) {
     if (frame.indices.length !== width * height) throw new Error("A GIF frame does not agree with the given size");
     writer.ascii("!\xf9\x04");
-    writer.byte(0); // no transparency, no disposal
+    // These are full, composited frames. Restore the background before the
+    // next one and preserve transparent pixels when the source has them.
+    writer.byte(frame.transparentIndex === undefined ? 0 : 0x09);
     writer.short(Math.max(0, Math.round(frame.delayCs)));
-    writer.byte(0); // transparent colour index
+    writer.byte(frame.transparentIndex ?? 0);
     writer.byte(0);
 
     writer.byte(0x2c); // image descriptor

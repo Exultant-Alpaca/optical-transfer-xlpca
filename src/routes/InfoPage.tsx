@@ -54,6 +54,17 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
         of the file.
       </p>
 
+      <h2>Media size</h2>
+      <p>
+        The sender can make a large photo, GIF, or short video smaller before the transfer. This work stays
+        in the browser. The browser keeps the original when the new file is not at least 10 percent smaller.
+      </p>
+      <p>
+        GIF compression can reduce the dimensions, frame rate, and colours. Video compression can reduce
+        the dimensions, frame rate, and bit rate. Video compression runs in real time and can change the
+        file to MP4 or WebM. Select Full size to send the source without a change.
+      </p>
+
       <h2>How to save the stream as a GIF</h2>
       <p>
         The sending screen can write its frames to a GIF file. Use the GIF to examine or to send the
@@ -95,6 +106,10 @@ const content: Record<InfoKind, { title: string; body: ReactNode }> = {
         The receiver needs permission to use the camera. It also needs a secure connection. These
         conditions change the speed: the brightness of the screen, the focus of the camera, the distance,
         the angle, the temperature of the device, and the browser. Do a test with your equipment.
+      </p>
+      <p>
+        Media compression uses browser codecs. A browser that cannot read or write the selected format
+        sends the original file. Video compression is available for videos of five minutes or less.
       </p>
 
       <h2>QRStatic is not a transfer mode</h2>

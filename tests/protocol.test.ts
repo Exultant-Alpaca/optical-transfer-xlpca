@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildFrameHeader, packFrame, parseFrame } from "../src/protocol/frame";
 import { FountainDecoder, FountainEncoder, fountainSeed } from "../src/protocol/fountain";
 import { sanitizeFilename, sanitizeMime } from "../src/services/fileProcessing";
-import { FOUNTAIN_OVERHEAD, MAX_SOURCE_BLOCK_SIZE, PROFILES, frameIntervalMs, mayCarryAlpha, supportsCompression, supportsImageRecoding } from "../src/config/policy";
+import { FOUNTAIN_OVERHEAD, MAX_SOURCE_BLOCK_SIZE, PROFILES, frameIntervalMs, mayCarryAlpha, supportsCompression, supportsImageRecoding, supportsMediaRecoding } from "../src/config/policy";
 
 function sampleBytes(length: number): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(new ArrayBuffer(length));
@@ -100,10 +100,18 @@ describe("image recoding policy", () => {
     for (const mime of ["image/jpeg", "image/png", "image/webp", "image/heic", "image/avif"]) {
       expect(supportsImageRecoding(mime)).toBe(true);
     }
-    // GIF decodes to a single frame, so re-encoding would drop the animation
-    // with nothing to tell the receiver it happened.
+    // GIF and video use separate media paths, not the still-image path.
     for (const mime of ["image/gif", "image/svg+xml", "application/pdf", "video/mp4", "text/plain", ""]) {
       expect(supportsImageRecoding(mime)).toBe(false);
+    }
+  });
+
+  it("offers the same optional media control for GIFs and videos", () => {
+    for (const mime of ["image/jpeg", "image/gif", "video/mp4", "video/quicktime", "video/webm"]) {
+      expect(supportsMediaRecoding(mime)).toBe(true);
+    }
+    for (const mime of ["image/svg+xml", "application/pdf", "audio/mpeg", "text/plain", ""]) {
+      expect(supportsMediaRecoding(mime)).toBe(false);
     }
   });
 

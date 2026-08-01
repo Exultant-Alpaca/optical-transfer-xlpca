@@ -1,12 +1,15 @@
 import { DEFAULT_IMAGE_PRESET, HARD_FILE_LIMIT, PUBLIC_FILE_LIMIT, type ImageQualityPreset } from "../config/policy";
 import { bytesToBase64Url } from "../protocol/bytes";
+import { recodeVideoFile } from "./videoRecoding";
 
-/** Set when a large image was re-encoded, describing what it was beforehand. */
-export interface RecodedImageInfo {
+/** Set when visual media was re-encoded, describing what it was beforehand. */
+export interface RecodedMediaInfo {
   sourceLength: number;
   sourceMime: string;
   width: number;
   height: number;
+  /** Missing only on a manifest made by an older release. */
+  kind?: "photo" | "animation" | "video";
 }
 
 export interface ProcessedFile {
@@ -18,7 +21,7 @@ export interface ProcessedFile {
   mime: string;
   /** Transmitted filename, re-extensioned when re-encoded. */
   filename: string;
-  recoded: RecodedImageInfo | null;
+  recoded: RecodedMediaInfo | null;
 }
 
 export function validateFile(file: File): string | null {
@@ -36,11 +39,21 @@ interface ProcessResponse {
   sha256?: ArrayBuffer;
   mime?: string;
   filename?: string;
-  recoded?: RecodedImageInfo | null;
+  recoded?: RecodedMediaInfo | null;
   message?: string;
 }
 
-export function processFileInWorker(file: File, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET): Promise<ProcessedFile> {
+export async function processFileInWorker(file: File, imagePreset: ImageQualityPreset = DEFAULT_IMAGE_PRESET): Promise<ProcessedFile> {
+  const videoResult = await recodeVideoFile(file, imagePreset).catch(() => null);
+  const input = videoResult?.file ?? file;
+  const videoRecoded: RecodedMediaInfo | null = videoResult ? {
+    sourceLength: file.size,
+    sourceMime: file.type,
+    width: videoResult.width,
+    height: videoResult.height,
+    kind: "video",
+  } : null;
+
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL("../workers/fileProcessor.worker.ts", import.meta.url), { type: "module" });
     worker.onmessage = (event: MessageEvent<ProcessResponse>) => {
@@ -55,14 +68,14 @@ export function processFileInWorker(file: File, imagePreset: ImageQualityPreset 
         encoded: new Uint8Array(data.encoded),
         compression: data.compression,
         sha256: new Uint8Array(data.sha256),
-        mime: data.mime || file.type || "application/octet-stream",
-        filename: data.filename || file.name,
-        recoded: data.recoded ?? null,
+        mime: data.mime || input.type || "application/octet-stream",
+        filename: data.filename || input.name,
+        recoded: videoRecoded ?? data.recoded ?? null,
       });
     };
     worker.onerror = () => { worker.terminate(); reject(new Error("File worker stopped unexpectedly")); };
-    file.arrayBuffer()
-      .then((buffer) => worker.postMessage({ type: "process", buffer, mime: file.type, filename: file.name, imagePreset }, [buffer]))
+    input.arrayBuffer()
+      .then((buffer) => worker.postMessage({ type: "process", buffer, mime: input.type, filename: input.name, imagePreset }, [buffer]))
       .catch((error: unknown) => { worker.terminate(); reject(error); });
   });
 }

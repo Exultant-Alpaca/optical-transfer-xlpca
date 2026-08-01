@@ -127,6 +127,20 @@ describe("gif writer", () => {
     expect(decoded.frames[0]).toEqual(Array.from(indices));
   });
 
+  it("writes transparency and can omit the loop extension", async () => {
+    const blob = encodeGif({
+      width: 2,
+      height: 1,
+      palette: new Uint8Array([0, 0, 0, 255, 255, 255]),
+      frames: [{ indices: new Uint8Array([0, 1]), delayCs: 8, transparentIndex: 0 }],
+      loopCount: null,
+    });
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const text = String.fromCharCode(...bytes);
+    expect(text.includes("NETSCAPE2.0")).toBe(false);
+    expect(Array.from(bytes).some((value, index) => value === 0x21 && bytes[index + 1] === 0xf9 && bytes[index + 2] === 0x04 && bytes[index + 3] === 0x09)).toBe(true);
+  });
+
   it("scales each module into a square block", () => {
     const scaled = scaleIndices(new Uint8Array([0, 1, 1, 0]), 2, 2, 2);
     expect(Array.from(scaled)).toEqual([0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0]);

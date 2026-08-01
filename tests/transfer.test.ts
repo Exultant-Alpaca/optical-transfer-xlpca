@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-// The real implementation offloads hashing, gzip, and image re-encoding to a
+// The real implementation offloads hashing, gzip, and media re-encoding to a
 // Worker with OffscreenCanvas, none of which exist in the test environment. The
 // transport is what these tests exercise, so stand in a direct implementation of
 // the same contract. Image re-encoding itself is verified in a real browser.
@@ -24,7 +24,7 @@ vi.mock("../src/services/fileProcessing", async (importOriginal) => {
         sha256: new Uint8Array(await crypto.subtle.digest("SHA-256", payload)),
         mime: recoding ? "image/webp" : (file.type || "application/octet-stream"),
         filename: recoding ? file.name.replace(/\.[^.]+$/, ".webp") : file.name,
-        recoded: recoding ? { sourceLength: source.length, sourceMime: file.type, width: 2_560, height: 1_920 } : null,
+        recoded: recoding ? { sourceLength: source.length, sourceMime: file.type, width: 2_560, height: 1_920, kind: "photo" as const } : null,
       };
     },
   };
@@ -149,7 +149,7 @@ describe("end to end optical transfer", () => {
       const photo = new File([bytes], "DSC_4821.jpg", { type: "image/jpeg" });
 
       const plan = await prepareTransfer(photo, "conservative", "balanced");
-      expect(plan.manifest.recoded).toEqual({ sourceLength: 80_000, sourceMime: "image/jpeg", width: 2_560, height: 1_920 });
+      expect(plan.manifest.recoded).toEqual({ sourceLength: 80_000, sourceMime: "image/jpeg", width: 2_560, height: 1_920, kind: "photo" });
       // The receiver must be told what it is saving, and it must be a WebP.
       expect(plan.manifest.filename).toBe("DSC_4821.webp");
       expect(plan.manifest.mime).toBe("image/webp");

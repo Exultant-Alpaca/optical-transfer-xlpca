@@ -4,7 +4,7 @@ import { decryptGeneration, derivePassphraseKey, encryptGeneration, PASSPHRASE_K
 import { buildFrameHeader, packFrame, parseFrame } from "./frame";
 import { FountainDecoder, FountainEncoder, fountainSeed } from "./fountain";
 import { normalizePassphrase } from "./passphrase";
-import { processFileInWorker, sanitizeFilename, sanitizeMime, type ProcessedFile } from "../services/fileProcessing";
+import { processFileInWorker, sanitizeFilename, sanitizeMime, type ProcessedFile, type RecodedMediaInfo } from "../services/fileProcessing";
 
 export interface TransferManifest {
   protocolVersion: 1;
@@ -20,11 +20,11 @@ export interface TransferManifest {
   sourceBlockSize: number;
   sha256: string;
   /**
-   * Present only when the sender re-encoded a large image. Provenance for the
+   * Present only when the sender re-encoded visual media. Provenance for the
    * receiver, never a verification input: sha256 always covers the bytes that
    * were actually transmitted.
    */
-  recoded?: { sourceLength: number; sourceMime: string; width: number; height: number };
+  recoded?: RecodedMediaInfo;
 }
 
 export interface TransferGeneration {

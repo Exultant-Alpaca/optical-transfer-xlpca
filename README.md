@@ -45,6 +45,12 @@ phrase. This project has not had an independent security review.
 - **Balanced:** The default setting for general use.
 - **High density:** Sends more data per QR code, but needs a steady camera and clear image.
 
+## Media compression
+
+The sender can optionally reduce large photos, animated GIFs, and videos before transmission. Processing
+stays in the browser. The original is used when the browser lacks a required codec or the new file is not
+at least 10% smaller. Video compression runs in real time and supports videos up to five minutes.
+
 ## QRStatic
 
 The `/qrstatic` page is a separate experiment based on [QRStatic](https://github.com/ianzepp/qrstatic).

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   DEFAULT_IMAGE_PRESET, DEFAULT_PROFILE, FOUNTAIN_OVERHEAD, frameIntervalMs, GENERATION_PLAIN_LIMIT,
-  IMAGE_PRESETS, PROFILES, receiverUrl,
+  IMAGE_PRESETS, PROFILES, receiverUrl, supportsMediaRecoding,
   type ImageQualityPreset, type TransferMode, type TransmissionProfile,
 } from "../config/policy";
 import { CameraScanner, type ScanResult } from "../components/CameraScanner";
@@ -117,17 +117,31 @@ function FileRow({ name, detail, onChange }: { name: string; detail: string; onC
   </div>;
 }
 
-function PhotoQuality({ preset, onChange }: { preset: ImageQualityPreset; onChange: (preset: ImageQualityPreset) => void }) {
+function MediaQuality({ file, preset, onChange }: { file: File; preset: ImageQualityPreset; onChange: (preset: ImageQualityPreset) => void }) {
+  const isVideo = file.type.startsWith("video/");
+  const isGif = file.type === "image/gif";
   return <div className="segment-field">
-    <span className="field-label">Photo size</span>
-    <div className="segment" role="group" aria-label="Photo size">
+    <span className="field-label">Media size</span>
+    <div className="segment" role="group" aria-label="Media size">
       {(Object.keys(IMAGE_PRESETS) as ImageQualityPreset[]).map((key) => <button key={key} type="button" className={preset === key ? "segment-item selected" : "segment-item"} onClick={() => onChange(key)}>
         <strong>{IMAGE_PRESETS[key].label}</strong>
         <small>{IMAGE_PRESETS[key].detail}</small>
       </button>)}
     </div>
-    <Note>{preset === "original" ? "The software sends each photo without a change." : "The software can make a large photo smaller on this device. This makes the transfer more quick. It sends all other files without a change."}</Note>
+    <Note>{preset === "original"
+      ? "The software sends this file without a change."
+      : isVideo
+        ? "The browser compresses the video on this device. This can take as long as the video. It keeps the original if the result is not smaller."
+        : isGif
+          ? "The browser can reduce the GIF size, frame rate, and colours. It keeps the original if the result is not smaller."
+          : "The browser can make a large photo smaller on this device. It keeps the original if the result is not smaller."}</Note>
   </div>;
+}
+
+function recodedKind(kind: "photo" | "animation" | "video" | undefined): string {
+  if (kind === "video") return "video";
+  if (kind === "animation") return "GIF";
+  return "photo";
 }
 
 const SPEED_OPTIONS: Record<TransmissionProfile, { label: string; detail: string }> = {
@@ -289,7 +303,7 @@ function SendingScreen({ plan, passphrase, onStop }: { plan: TransferPlan; passp
     </div>
     <p className="sending-line">
       <strong>{plan.manifest.filename}</strong>
-      <span>{recoded ? `${formatBytes(recoded.sourceLength)} photo, sent as ${formatBytes(plan.manifest.originalLength)}` : formatBytes(plan.manifest.originalLength)}</span>
+      <span>{recoded ? `${formatBytes(recoded.sourceLength)} ${recodedKind(recoded.kind)}, sent as ${formatBytes(plan.manifest.originalLength)}` : formatBytes(plan.manifest.originalLength)}</span>
       <span>{remaining > 0 ? `${formatDuration(remaining)} for one pass` : "the stream repeats"}</span>
       <span className="rate">{rate ? `${rate.fps.toFixed(0)} fps, ${(rate.bytesPerSecond / 1024).toFixed(0)} kB/s` : "measuring"}</span>
     </p>
@@ -373,12 +387,12 @@ export function TransferSendPage({ onNavigate }: { onNavigate: (route: Route) =>
         <input type="file" onChange={(event) => selectFile(event.target.files?.[0])} />
         <strong>Select a file</strong><small>Any file. The maximum size is 10 MB.</small>
       </label>}
-      {mode === "quick" && <PhotoQuality preset={imagePreset} onChange={setImagePreset} />}
+      {file && supportsMediaRecoding(file.type) && <MediaQuality file={file} preset={imagePreset} onChange={setImagePreset} />}
       {error && <p className="alert" role="alert">{error}</p>}
       <button className="button primary full-width" type="button" onClick={() => void prepareFile()} disabled={!file || busy}>{busy ? "Please wait" : "Start the transfer"}</button>
     </Panel>}
 
-    {stage === "preparing" && <div className="panel"><span className="spinner" /><h1>Please wait</h1><p className="lede">This browser prepares the file. Keep this page open.</p></div>}
+    {stage === "preparing" && <div className="panel"><span className="spinner" /><h1>Please wait</h1><p className="lede">{file?.type.startsWith("video/") && imagePreset !== "original" ? "This browser compresses the video in real time. Keep this page open." : "This browser prepares the file. Keep this page open."}</p></div>}
 
     {stage === "sending" && plan && <SendingScreen plan={plan} passphrase={mode === "passphrase" ? passphrase : undefined} onStop={restart} />}
   </main>;
@@ -481,7 +495,7 @@ export function TransferReceivePage({ onNavigate }: { onNavigate: (route: Route)
       <span className="done-mark">✓</span><h1>The transfer is complete</h1>
       <FileRow name={received.file.name} detail={formatBytes(received.file.size)} />
       <div className="button-row"><button className="button primary" type="button" onClick={save}>Save</button><button className="button secondary" type="button" onClick={share}>Share</button></div>
-      {received.manifest.recoded && <Note>The other device made this photo smaller before it sent the photo.</Note>}
+      {received.manifest.recoded && <Note>The other device made this {recodedKind(received.manifest.recoded.kind)} smaller before it sent the file.</Note>}
       <button className="button quiet full-width" type="button" onClick={() => { setReceived(undefined); setStage("start"); }}>Receive one more file</button>
       {error && <p className="alert" role="alert">{error}</p>}
     </div>}
